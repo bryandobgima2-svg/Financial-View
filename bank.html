@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1f2937" />
+    <title>Finex | Personal Finance Manager</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="bank.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <div class="brand-logo">F</div>
+          <div>
+            <h1>FINEX</h1>
+            <small>Finance Suite</small>
+          </div>
+        </div>
+
+        <nav class="menu">
+          <button class="nav-link active" data-target="dashboard">Dashboard</button>
+          <button class="nav-link" data-target="transactions">Transactions</button>
+          <button class="nav-link" data-target="budgets">Budgets</button>
+          <button class="nav-link" data-target="accounts">Accounts</button>
+          <button class="nav-link" data-target="savings">Savings</button>
+          <button class="nav-link" data-target="analytics">Analytics</button>
+          <button class="nav-link" data-target="settings">Rates</button>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Welcome back</p>
+            <h2>Financial overview</h2>
+          </div>
+
+          <div class="topbar-actions">
+            <div class="currency-wrap">
+              <label for="currencySelector">Primary currency</label>
+              <select id="currencySelector">
+                <option value="XAF">XAF</option>
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+            <button id="refreshRatesBtn" class="secondary-btn">Refresh rates</button>
+          </div>
+        </header>
+
+        <section id="dashboard" class="panel active">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h3>Cash flow summary</h3>
+            </div>
+            <div class="period-switch">
+              <button class="period-btn active" data-period="today">Today</button>
+              <button class="period-btn" data-period="week">Week</button>
+              <button class="period-btn" data-period="month">Month</button>
+              <button class="period-btn" data-period="year">Year</button>
+              <button class="period-btn" data-period="custom">Custom</button>
+            </div>
+          </div>
+
+          <div class="custom-range hidden" id="customRangeWrap">
+            <input type="date" id="customStart" />
+            <input type="date" id="customEnd" />
+            <button id="applyCustomRangeBtn" class="primary-btn">Apply</button>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card accent">
+              <span>Total income</span>
+              <strong id="totalIncomeValue">0.00</strong>
+            </article>
+            <article class="stat-card danger">
+              <span>Total expenses</span>
+              <strong id="totalExpensesValue">0.00</strong>
+            </article>
+            <article class="stat-card success">
+              <span>Available balance</span>
+              <strong id="availableBalanceValue">0.00</strong>
+            </article>
+            <article class="stat-card warning">
+              <span>Monthly budget</span>
+              <strong id="monthlyBudgetValue">0.00</strong>
+            </article>
+            <article class="stat-card info">
+              <span>Remaining budget</span>
+              <strong id="remainingBudgetValue">0.00</strong>
+            </article>
+            <article class="stat-card mint">
+              <span>Savings</span>
+              <strong id="savingsValue">0.00</strong>
+            </article>
+          </div>
+
+          <div class="summary-grid">
+            <div class="card chart-card">
+              <div class="card-header">
+                <h4>Income vs expenses</h4>
+              </div>
+              <canvas id="incomeExpenseChart"></canvas>
+            </div>
+
+            <div class="card chart-card">
+              <div class="card-header">
+                <h4>Category share</h4>
+              </div>
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header split-head">
+              <h4>Recent transactions</h4>
+              <a href="#transactions" class="inline-link">Open full view</a>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="recentTransactionsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="transactions" class="panel">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Records</p>
+              <h3>Expense and income management</h3>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="card form-card">
+              <div class="card-header">
+                <h4>Add expense</h4>
+              </div>
+              <form id="expenseForm" class="stack-form">
+                <div class="field-row">
+                  <label>Title
+                    <input type="text" name="title" required /></label>
+                  <label>Amount
+                    <input type="number" name="amount" step="0.01" min="0.01" required /></label>
+                </div>
+
+                <div class="field-row">
+                  <label>Currency
+                    <select name="currency">
+                      <option value="XAF">XAF</option>
+                      <option value="EUR">EUR</option>
+                      <option value="USD">USD</option>
+                    </select>
+                  </label>
+                  <label>Category
+                    <select name="category" id="expenseCategorySelect"></select>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>Date
+                    <input type="date" name="date" required /></label>
+                  <label>Time
+                    <input type="time" name="time" /></label>
+                </div>
+
+                <div class="field-row">
+                  <label>Payment method
+                    <input type="text" name="paymentMethod" value="Cash" /></label>
+                  <label>Account
+                    <select name="accountId" id="expenseAccountSelect"></select>
+                  </label>
+                </div>
+
+                <label>Custom category
+                  <input type="text" name="customCategory" placeholder="Add a category name" /></label>
+
+                <label>Description
+                  <textarea name="description" rows="3"></textarea></label>
+
+                <label>Receipt reference
+                  <input type="text" name="receiptRef" placeholder="Optional" /></label>
+
+                <button type="submit" class="primary-btn">Save expense</button>
+              </form>
+            </div>
+
+            <div class="card form-card">
+              <div class="card-header">
+                <h4>Add income</h4>
+              </div>
+              <form id="incomeForm" class="stack-form">
+                <div class="field-row">
+                  <label>Title
+                    <input type="text" name="title" required /></label>
+                  <label>Amount
+                    <input type="number" name="amount" step="0.01" min="0.01" required /></label>
+                </div>
+
+                <div class="field-row">
+                  <label>Currency
+                    <select name="currency">
+                      <option value="XAF">XAF</option>
+                      <option value="EUR">EUR</option>
+                      <option value="USD">USD</option>
+                    </select>
+                  </label>
+                  <label>Category
+                    <select name="category" id="incomeCategorySelect"></select>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>Date
+                    <input type="date" name="date" required /></label>
+                  <label>Time
+                    <input type="time" name="time" /></label>
+                </div>
+
+                <div class="field-row">
+                  <label>Account
+                    <select name="accountId" id="incomeAccountSelect"></select>
+                  </label>
+                  <label>Source
+                    <input type="text" name="source" value="Salary" /></label>
+                </div>
+
+                <label>Description
+                  <textarea name="description" rows="3"></textarea></label>
+
+                <button type="submit" class="primary-btn">Save income</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header split-head">
+              <h4>All transactions</h4>
+              <div class="toolbar-inline">
+                <input id="transactionSearch" type="search" placeholder="Search" />
+                <select id="transactionFilterType">
+                  <option value="all">All</option>
+                  <option value="expense">Expenses</option>
+                  <option value="income">Income</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Account</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="budgets" class="panel">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Planning</p>
+              <h3>Budget management</h3>
+            </div>
+          </div>
+
+          <div class="card form-card compact">
+            <form id="budgetForm" class="stack-form">
+              <div class="field-row">
+                <label>Budget name
+                  <input type="text" name="name" required /></label>
+                <label>Amount
+                  <input type="number" name="amount" min="0" step="0.01" required /></label>
+              </div>
+
+              <div class="field-row">
+                <label>Currency
+                  <select name="currency">
+                    <option value="XAF">XAF</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </label>
+                <label>Period
+                  <select name="periodType">
+                    <option value="monthly">Monthly</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="field-row">
+                <label>Category
+                  <select name="category">
+                    <option value="all">All categories</option>
+                    <option value="Food">Food</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Housing">Housing</option>
+                    <option value="Education">Education</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Internet and communication">Internet and communication</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </label>
+                <label>Alert threshold (%)
+                  <input type="number" name="alertThreshold" min="1" max="100" value="75" /></label>
+              </div>
+
+              <div class="field-row">
+                <label>Start date
+                  <input type="date" name="startDate" required /></label>
+                <label>End date
+                  <input type="date" name="endDate" /></label>
+              </div>
+
+              <button type="submit" class="primary-btn">Create budget</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Budget</th>
+                    <th>Spent</th>
+                    <th>Progress</th>
+                    <th>Alert</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="budgetTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="accounts" class="panel">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Accounts</p>
+              <h3>Wallets and transfers</h3>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="card form-card compact">
+              <div class="card-header">
+                <h4>Create account</h4>
+              </div>
+              <form id="accountForm" class="stack-form">
+                <label>Name
+                  <input type="text" name="name" required /></label>
+                <label>Currency
+                  <select name="currency">
+                    <option value="XAF">XAF</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </label>
+                <label>Initial balance
+                  <input type="number" name="initialBalance" step="0.01" min="0" required /></label>
+                <button type="submit" class="primary-btn">Create</button>
+              </form>
+            </div>
+
+            <div class="card form-card compact">
+              <div class="card-header">
+                <h4>Transfer between accounts</h4>
+              </div>
+              <form id="transferForm" class="stack-form">
+                <label>From
+                  <select id="transferFrom" required></select></label>
+                <label>To
+                  <select id="transferTo" required></select></label>
+                <label>Amount
+                  <input type="number" id="transferAmount" step="0.01" min="0" required /></label>
+                <label>Currency
+                  <select id="transferCurrency">
+                    <option value="XAF">XAF</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </label>
+                <button type="submit" class="primary-btn">Transfer</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Currency</th>
+                    <th>Initial</th>
+                    <th>Current</th>
+                    <th>Transactions</th>
+                  </tr>
+                </thead>
+                <tbody id="accountTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="savings" class="panel">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Goals</p>
+              <h3>Savings and milestones</h3>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="card form-card compact">
+              <div class="card-header">
+                <h4>Create goal</h4>
+              </div>
+              <form id="goalForm" class="stack-form">
+                <label>Name
+                  <input type="text" name="name" required /></label>
+                <label>Target amount
+                  <input type="number" name="targetAmount" step="0.01" min="0.01" required /></label>
+                <label>Currency
+                  <select name="currency">
+                    <option value="XAF">XAF</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </label>
+                <label>Deadline
+                  <input type="date" name="deadline" required /></label>
+                <button type="submit" class="primary-btn">Create goal</button>
+              </form>
+            </div>
+
+            <div class="card form-card compact">
+              <div class="card-header">
+                <h4>Goal contribution</h4>
+              </div>
+              <form id="goalContributionForm" class="stack-form">
+                <label>Goal
+                  <select id="goalSelect"></select></label>
+                <label>Amount
+                  <input type="number" id="goalAmount" step="0.01" min="0.01" required /></label>
+                <label>Type
+                  <select id="goalContributionType">
+                    <option value="contribution">Contribution</option>
+                    <option value="withdrawal">Withdrawal</option>
+                  </select>
+                </label>
+                <button type="submit" class="primary-btn">Apply</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Goal</th>
+                    <th>Target</th>
+                    <th>Saved</th>
+                    <th>Progress</th>
+                    <th>Deadline</th>
+                  </tr>
+                </thead>
+                <tbody id="goalsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="analytics" class="panel">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Insights</p>
+              <h3>Financial analytics</h3>
+            </div>
+          </div>
+
+          <div class="stats-grid analytics-grid">
+            <article class="stat-card accent">
+              <span>Average daily spending</span>
+              <strong id="avgDailySpendingValue">0.00</strong>
+            </article>
+            <article class="stat-card danger">
+              <span>Highest spending category</span>
+              <strong id="highestCategoryValue">-</strong>
+            </article>
+            <article class="stat-card success">
+              <span>Monthly trend</span>
+              <strong id="monthlyTrendValue">0.00</strong>
+            </article>
+          </div>
+
+          <div class="summary-grid">
+            <div class="card chart-card">
+              <div class="card-header">
+                <h4>Monthly spending evolution</h4>
+              </div>
+              <canvas id="monthlyEvolutionChart"></canvas>
+            </div>
+            <div class="card chart-card">
+              <div class="card-header">
+                <h4>Income vs expenses trend</h4>
+              </div>
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section id="settings" class="panel">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Configuration</p>
+              <h3>Exchange rate management</h3>
+            </div>
+          </div>
+
+          <div class="card form-card compact">
+            <div class="card-header">
+              <h4>Manual rate overrides</h4>
+            </div>
+            <form id="exchangeRateForm" class="stack-form">
+              <div class="field-row">
+                <label>1 EUR in XAF
+                  <input type="number" id="rateEUR" step="0.01" min="1" /></label>
+                <label>1 USD in XAF
+                  <input type="number" id="rateUSD" step="0.01" min="1" /></label>
+              </div>
+              <div class="field-row">
+                <label>Last update
+                  <input type="text" id="lastRateUpdate" readonly /></label>
+                <label>Source
+                  <input type="text" id="rateSource" readonly /></label>
+              </div>
+              <button type="submit" class="primary-btn">Save rates</button>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="bank.js"></script>
+  </body>
+</html>

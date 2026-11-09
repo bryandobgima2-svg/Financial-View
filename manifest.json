@@ -1,0 +1,10 @@
+{
+  "name": "Finex Personal Finance Manager",
+  "short_name": "Finex",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f6fb",
+  "theme_color": "#1f2937",
+  "description": "A secure, responsive personal finance dashboard for XAF, EUR and USD managed accounts.",
+  "orientation": "portrait"
+}
